@@ -4,7 +4,7 @@ sudo npm install -g pm2
 
 pm2 stop example_app
 
-cd DevOpsSecCA2/SimpleApplication/
+cd DevOpsSecCA1/SimpleApplication/
 
 npm install
 echo $PRIVATE_KEY > privatekey.pem
