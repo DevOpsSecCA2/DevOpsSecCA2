@@ -1,17 +1,7 @@
-# Devops CA2 Project
+User 1:
+Username - User01
+Password - user01
 
-# Project Dependencies
-1. Node.js
-2. Truffle
-...
----
-# Install Dependencies
-1. use the cd command to navigate to the downloaded projects directory
-2. Run the npm install command
-
-# Run Project
-1. use the cd command to navigate to the downloaded projects directory
-2. Run the npm start command to run the project
-
-***
-
+User 2:
+Username - User02
+Password - user02
