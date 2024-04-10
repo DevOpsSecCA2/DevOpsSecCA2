@@ -10,4 +10,4 @@ npm install
 echo $PRIVATE_KEY > privatekey.pem
 echo $SERVER > server.crt
 
-pm2 start ./bin/www --name example_app
+pm2 start "php -S 0.0.0.0:8080 -t /DevOpsSecCA2/SimpleApplication" --name My_PHP_App
