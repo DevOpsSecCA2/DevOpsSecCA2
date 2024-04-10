@@ -29,7 +29,24 @@ jobs:
     when: on_success  # Only run this job on successful builds
 
   approval:
-    type: approval
-    requires:
-      - deploy
-    when: on_hold
+    docker:
+      - image: circleci/ruby:2.7-node  # Use the same image as the build job
+    steps:
+      - checkout
+      - run:
+          name: Manual Approval
+          command: echo "Manual approval required"
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+      - approval:
+          type: approval
+          requires:
+            - deploy
+          when: on_hold
