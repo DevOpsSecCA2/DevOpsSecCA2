@@ -31,7 +31,7 @@ jobs:
 
   approval:
     docker:
-      - image: circleci/ruby:2.7-node  # Use the same image as the build job
+      - image: circleci/ruby:3.2-node  # Use the same image as the build job
     steps:
       - checkout
       - run:
