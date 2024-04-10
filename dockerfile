@@ -1,5 +1,5 @@
 # Use an official Ruby runtime as a parent image
-FROM ruby:2.7
+FROM ruby:3.0
 
 # Set environment variables
 ENV RAILS_ROOT /var/www/todo_app
