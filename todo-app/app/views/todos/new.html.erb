@@ -1,0 +1,15 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <h1>Editing Todo</h1>
+
+      <%= render "form", todo: @todo %>
+
+      <br>
+
+      <div class="btn-group" role="group">
+        <%= link_to "Back to todos", todos_path, class: "btn btn-dark" %>
+      </div>
+    </div>
+  </div>
+</div>

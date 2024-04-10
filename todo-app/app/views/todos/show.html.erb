@@ -1,0 +1,22 @@
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+    <h1>View To-Do</h1>
+      <p class="text-success"><%= notice %></p>
+      <div id="<%= dom_id @todo %>" class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title"><%= @todo.title %></h5>
+          <p class="card-text"><strong>Task: :</strong> <%= @todo.description %></p>
+          <p class="card-text"><strong>Completed:</strong> <%= @todo.completed ? 'Yes' : 'No' %></p>
+        </div>
+      </div>
+        <%= link_to "Edit this todo", edit_todo_path(@todo), class: "btn btn-dark" %>
+
+        <%= link_to "Back to todos", todos_path, class: "btn btn-dark" %>
+
+        <%= button_to "Destroy this todo", @todo, method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-dark mt-3" %>
+    </div>
+  </div>
+</div>
+
