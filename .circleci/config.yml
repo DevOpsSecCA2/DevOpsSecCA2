@@ -48,5 +48,3 @@ workflows:
           type: approval
           requires:
             - deploy
-          when: on_hold
-S
