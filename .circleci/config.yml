@@ -16,20 +16,21 @@ jobs:
       - save_cache:
           key: gem-cache-{{ .Branch }}-{{ checksum "todo-app/Gemfile.lock" }}
           paths:
-            - vendor/bundle
+            - todo-app/vendor/bundle
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: |
+            cd todo-app
+            docker build -t jamesgraham97/my_rails_app:${CIRCLE_SHA1} .
+            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+            docker push jamesgraham97/my_rails_app:${CIRCLE_SHA1}
 
   deploy:
     docker:
       - image: circleci/python:3.7
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Build Docker Image
-          command: |
-            docker build -t jamesgraham97/my_rails_app:${CIRCLE_SHA1} .
-            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
-            docker push jamesgraham97/my_rails_app:${CIRCLE_SHA1}
       - run:
           name: Deploy to EC2
           command: |
