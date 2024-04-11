@@ -39,7 +39,6 @@ jobs:
             chmod 600 ~/.ssh/id_rsa
             ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
             ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d -p 80:80 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-          when: on_success
 
   approval:
     docker:
@@ -55,9 +54,10 @@ workflows:
   build_and_deploy:
     jobs:
       - build
-      - approval:
+      - hold_for_approval:
+          type: approval
           requires:
             - build
       - deploy:
           requires:
-            - approval
+            - hold_for_approval
