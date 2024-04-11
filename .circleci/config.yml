@@ -25,10 +25,6 @@ jobs:
             docker build -t jamesgraham97/my_rails_app:${CIRCLE_SHA1} .
             docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
             docker push jamesgraham97/my_rails_app:${CIRCLE_SHA1}
-      - run:
-          name: Cleanup Docker Resources
-          command: |
-            docker system prune -af
 
   deploy:
     docker:
@@ -42,30 +38,14 @@ jobs:
             chmod 700 ~/.ssh
             touch ~/.ssh/known_hosts
             chmod 600 ~/.ssh/known_hosts
-            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
             ssh-keyscan -H $EC2_PUBLIC_DNS >> ~/.ssh/known_hosts
-      - run:
-          name: Stop existing Docker container on port 80
-          command: |
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "docker stop \$(docker ps -q --filter 'publish=80') || true"
-      - run:
-          name: Remove existing Docker container on port 80
-          command: |
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "docker rm \$(docker ps -aq --filter 'publish=80') || true"
       - run:
           name: Deploy to EC2
           command: |
             cd todo-app
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d -p 80:3000 --name my_rails_app jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-      - run:
-          name: Wait for container to initialize
-          command: sleep 30
-      - run:
-          name: Run pending migrations on EC2
-          command: |
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec -it my_rails_app bin/rails db:migrate RAILS_ENV=production"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker stop jamesgraham97/my_rails_app || true"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker start jamesgraham97/my_rails_app"
 
   approval:
     docker:
