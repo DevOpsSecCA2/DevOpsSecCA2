@@ -44,8 +44,8 @@ jobs:
       - run:
           name: Prune unused Docker images on EC2
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker rmi \$(docker images --filter \"before=gifted_margulis\" -q)"
-      - run:
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker rmi \$(docker images --format '{{.Repository}}:{{.Tag}}' | grep 'gifted_margulis')"
+
           name: Deploy to EC2
           command: |
             cd todo-app
