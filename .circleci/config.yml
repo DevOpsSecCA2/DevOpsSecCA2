@@ -29,29 +29,29 @@ jobs:
 
 
   deploy:
-    docker:
-      - image: circleci/ruby:3.0.3-node
-    steps:
-      - checkout
-      - run:
-          name: Create .ssh directory and set permissions
-          command: |
-            mkdir -p ~/.ssh
-            chmod 700 ~/.ssh
-            touch ~/.ssh/known_hosts
-            chmod 600 ~/.ssh/known_hosts
-            ssh-keyscan -H $EC2_PUBLIC_DNS >> ~/.ssh/known_hosts
-      - run:
-          name: Deploy to EC2
-          command: |
-            cd todo-app
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker stop $(docker ps -q --filter ancestor=jamesgraham97/my_rails_app) || true"
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d -p 80:3000 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-      - run:
-          name: Run pending migrations on EC2
-          command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec gifted_margulis bin/rails db:migrate RAILS_ENV=production"
+  docker:
+    - image: circleci/ruby:3.0.3-node
+  steps:
+    - checkout
+    - run:
+        name: Create .ssh directory and set permissions
+        command: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          touch ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          ssh-keyscan -H $EC2_PUBLIC_DNS >> ~/.ssh/known_hosts
+    - run:
+        name: Deploy to EC2
+        command: |
+          cd todo-app
+          echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+          echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker stop gifted_margulis || true"
+          echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d -p 80:3000 --name gifted_margulis jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+    - run:
+        name: Run pending migrations on EC2
+        command: |
+          echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec gifted_margulis bin/rails db:migrate RAILS_ENV=production"
 
 
   approval:
