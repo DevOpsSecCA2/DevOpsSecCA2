@@ -25,13 +25,7 @@ jobs:
             docker build -t jamesgraham97/my_rails_app:${CIRCLE_SHA1} .
             docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
             docker push jamesgraham97/my_rails_app:${CIRCLE_SHA1}
-      - run:
-          name: Cleanup Docker Resources
-          command: |
-            docker container prune -f
-            docker image prune -a -f
-            docker volume prune -f
-            docker network prune -f
+            docker image prune -a -f  # Remove unused images to free up space
 
   deploy:
     docker:
@@ -60,13 +54,7 @@ jobs:
             cd todo-app
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d -p 80:3000 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-      - run:
-          name: Wait for container to initialize
-          command: sleep 30
-      - run:
-          name: Run pending migrations on EC2
-          command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec -it \$(docker ps -q --filter ancestor=jamesgraham97/my_rails_app) bin/rails db:migrate RAILS_ENV=production"
+            docker container prune -f  # Remove stopped containers to free up space
 
   approval:
     docker:
