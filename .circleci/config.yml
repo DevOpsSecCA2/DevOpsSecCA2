@@ -25,8 +25,6 @@ jobs:
             docker build -t jamesgraham97/my_rails_app:${CIRCLE_SHA1} .
             docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
             docker push jamesgraham97/my_rails_app:${CIRCLE_SHA1}
-      
-
 
   deploy:
     docker:
@@ -42,27 +40,21 @@ jobs:
             chmod 600 ~/.ssh/known_hosts
             ssh-keyscan -H $EC2_PUBLIC_DNS >> ~/.ssh/known_hosts
       - run:
-          name: Stop the container
-          command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker stop gifted_margulis"
-      - run:
           name: Prune unused Docker images on EC2
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker images -q jamesgraham97/my_rails_app | xargs docker rmi -f"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -aqf 'name=gifted_margulis' | xargs docker inspect --format='{{.Image}}' | xargs -I {} docker rmi {} -f"
       - run:
-          name: Deploy to EC2
+          name: Pull latest Docker image on EC2
           command: |
-            cd todo-app
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker restart gifted_margulis"
+      - run:
+          name: Update container with latest Docker image
+          command: |
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker stop gifted_margulis && /usr/bin/docker rm gifted_margulis && /usr/bin/docker run -d --name gifted_margulis -p 80:3000 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
       - run:
           name: Run pending migrations on EC2
           command: |
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec gifted_margulis chmod +x bin/rails && docker exec gifted_margulis /usr/local/bin/ruby bin/rails db:migrate RAILS_ENV=production SECRET_KEY_BASE=$SECRET_KEY_BASE"
-
-
-
-
 
   approval:
     docker:
