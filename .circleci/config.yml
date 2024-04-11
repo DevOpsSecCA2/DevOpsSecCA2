@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Prune unused Docker images on EC2
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -aqf 'name=gifted_margulis' | xargs docker inspect --format='{{.Image}}' | xargs -I {} docker rmi {} -f"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker images -q jamesgraham97/my_rails_app | xargs docker rmi -f"
       - run:
           name: Deploy to EC2
           command: |
