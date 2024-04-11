@@ -25,9 +25,9 @@ jobs:
       - run:
           name: Build Docker Image
           command: |
-            docker build -t JamesGraham97/my_rails_app:${CIRCLE_SHA1} .
-            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
-            docker push JamesGraham97/my_rails_app:${CIRCLE_SHA1}
+            docker build -t JamesGraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]') .
+          docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+          docker push JamesGraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')
 
   approval:
     docker:
