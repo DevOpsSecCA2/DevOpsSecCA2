@@ -31,18 +31,15 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Install SSH Key
-          command: |
-            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
       - run:
           name: Deploy to EC2
           command: |
             cd todo-app
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "docker run -d -p 80:80 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d -p 80:80 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+      when: on_success
 
   approval:
     docker:
@@ -58,10 +55,9 @@ workflows:
   build_and_deploy:
     jobs:
       - build
-      - deploy:
+      - approval:
           requires:
             - build
-      - approval:
-          type: approval
+      - deploy:
           requires:
-            - deploy
+            - approval
