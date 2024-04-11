@@ -40,13 +40,13 @@ jobs:
             chmod 600 ~/.ssh/known_hosts
             ssh-keyscan -H $EC2_PUBLIC_DNS >> ~/.ssh/known_hosts
       - run:
-          name: Stop existing Docker container
+          name: Stop existing Docker container on port 80
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -q --filter ancestor=jamesgraham97/my_rails_app | xargs -r docker stop || true"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -q --filter 'publish=80' | xargs -r docker stop || true"
       - run:
-          name: Remove existing Docker container
+          name: Remove existing Docker container on port 80
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -q --filter ancestor=jamesgraham97/my_rails_app | xargs -r docker rm || true"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -aq --filter 'publish=80' | xargs -r docker rm || true"
       - run:
           name: Deploy to EC2
           command: |
