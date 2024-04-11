@@ -1,4 +1,5 @@
 version: 2.1
+
 jobs:
   build:
     docker:
@@ -27,11 +28,18 @@ jobs:
           command: |
             docker build -t jamesgraham97/my_rails_app:${CIRCLE_SHA1} .
             docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
-            docker push JamesGraham97/my_rails_app:${CIRCLE_SHA1}
+            docker push jamesgraham97/my_rails_app:${CIRCLE_SHA1}
+      - run:
+          name: Deploy to EC2
+          command: |
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $EC2_USERNAME@$EC2_PUBLIC_DNS "docker run -d -p 80:80 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
 
   approval:
     docker:
-      - image: circleci/ruby:3.0.3-node  # Use the same image as the build job
+      - image: circleci/ruby:3.0.3-node
     steps:
       - checkout
       - run:
