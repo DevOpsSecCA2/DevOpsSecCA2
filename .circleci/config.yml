@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Run pending migrations on EC2
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec gifted_margulis chmod +x bin/rails && docker exec gifted_margulis /usr/local/bin/ruby bin/rails db:migrate RAILS_ENV=production SECRET_KEY_BASE=$SECRET_KEY_BASE"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec gifted_margulis chmod +x bin/rails && docker exec gifted_margulis /usr/local/bin/ruby bin/rails db:migrate SECRET_KEY_BASE=$SECRET_KEY_BASE"
 
   approval:
     docker:
