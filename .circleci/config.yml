@@ -13,7 +13,7 @@ jobs:
             bundle config set --local path 'vendor/bundle'
             bundle install
       - save_cache:
-          key: gem-cache-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+          key: gem-cache-{{ .Branch }}-{{ checksum "todo-app/Gemfile.lock" }}
           paths:
             - vendor/bundle
 
@@ -31,7 +31,7 @@ jobs:
 
   approval:
     docker:
-      - image: circleci/ruby:3.0-node  # Use the same image as the build job
+      - image: circleci/ruby:3.0.3-node  # Use the same image as the build job
     steps:
       - checkout
       - run:
