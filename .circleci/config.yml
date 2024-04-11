@@ -7,10 +7,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Docker
-          command: |
-            sudo service docker start
-      - run:
           name: Install dependencies
           command: |
             cd todo-app
@@ -27,10 +23,7 @@ jobs:
       - image: circleci/python:3.7
     steps:
       - checkout
-      - run:
-          name: Start Docker
-          command: |
-            sudo service docker start
+      - setup_remote_docker
       - run:
           name: Build Docker Image
           command: |
