@@ -4,6 +4,8 @@ jobs:
   build:
     docker:
       - image: circleci/ruby:3.0.3-node
+        command: /sbin/init
+      - image: docker:20.10.9-dind
     steps:
       - checkout
       - run:
@@ -29,6 +31,8 @@ jobs:
   deploy:
     docker:
       - image: circleci/ruby:3.0.3-node
+        command: /sbin/init
+      - image: docker:20.10.9
     steps:
       - checkout
       - run:
@@ -42,7 +46,7 @@ jobs:
       - run:
           name: Stop existing Docker container
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker stop $(docker ps -q --filter ancestor=jamesgraham97/my_rails_app)"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker stop \$(docker ps -q --filter ancestor=jamesgraham97/my_rails_app)"
       - run:
           name: Deploy to EC2
           command: |
