@@ -40,29 +40,21 @@ jobs:
             chmod 600 ~/.ssh/known_hosts
             ssh-keyscan -H $EC2_PUBLIC_DNS >> ~/.ssh/known_hosts
       - run:
-          name: Check if container exists on EC2
+          name: Stop and remove existing container on EC2
           command: |
-            CONTAINER_EXISTS=$(echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -aqf 'name=gifted_margulis'")
-            if [ -n "$CONTAINER_EXISTS" ]; then
-              echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker rmi \$(docker images --filter \"before=gifted_margulis\" -q)"
-              echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -aqf 'name=gifted_margulis' | xargs docker inspect --format='{{.Image}}' | xargs -I {} docker rmi {}"
-            fi
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker stop gifted_margulis && /usr/bin/docker rm gifted_margulis"
+      - run:
+          name: Prune unused Docker images on EC2
+          command: |
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker image prune -a -f"
       - run:
           name: Pull latest Docker image on EC2
           command: |
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker pull jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
       - run:
-          name: Create and start container on EC2
+          name: Update container with latest Docker image
           command: |
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d --name gifted_margulis -p 80:3000 -e RAILS_MAX_THREADS=5 -e DATABASE_USERNAME=$DATABASE_USERNAME -e DATABASE_PASSWORD=$DATABASE_PASSWORD -e DATABASE_HOST=$DATABASE_HOST -e DATABASE_PORT=$DATABASE_PORT jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
-      - run:
-          name: Create database on EC2
-          command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "RAILS_ENV=production /usr/bin/docker exec gifted_margulis /usr/local/bin/ruby bin/rails db:create"      
-      - run:
-          name: Run pending migrations on EC2
-          command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec gifted_margulis chmod +x bin/rails && docker exec gifted_margulis /usr/local/bin/ruby bin/rails db:migrate SECRET_KEY_BASE=$SECRET_KEY_BASE"
 
   approval:
     docker:
