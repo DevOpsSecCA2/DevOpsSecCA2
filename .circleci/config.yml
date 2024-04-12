@@ -56,6 +56,10 @@ jobs:
           command: |
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d --name gifted_margulis -p 80:3000 -e RAILS_MAX_THREADS=5 -e DATABASE_USERNAME=$DATABASE_USERNAME -e DATABASE_PASSWORD=$DATABASE_PASSWORD -e DATABASE_HOST=$DATABASE_HOST -e DATABASE_PORT=$DATABASE_PORT jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
       - run:
+          name: Create database on EC2
+          command: |
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "RAILS_ENV=production /usr/bin/docker exec gifted_margulis /usr/local/bin/ruby bin/rails db:create"      
+      - run:
           name: Run pending migrations on EC2
           command: |
             echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker exec gifted_margulis chmod +x bin/rails && docker exec gifted_margulis /usr/local/bin/ruby bin/rails db:migrate SECRET_KEY_BASE=$SECRET_KEY_BASE"
