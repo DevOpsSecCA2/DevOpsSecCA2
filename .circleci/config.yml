@@ -46,7 +46,7 @@ jobs:
       - run:
           name: Prune unused Docker images on EC2
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker ps -aqf 'name=gifted_margulis' | xargs docker inspect --format='{{.Image}}' | xargs -I {} docker rmi {} -f"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "docker system prune -a --volumes"
       - run:
           name: Pull latest Docker image on EC2
           command: |
@@ -54,7 +54,7 @@ jobs:
       - run:
           name: Update container with latest Docker image
           command: |
-            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d --name gifted_margulis -p 80:3000 -e RAILS_MAX_THREADS=5 -e DATABASE_USERNAME=$DATABASE_USERNAME -e DATABASE_PASSWORD=$DATABASE_PASSWORD -e DATABASE_HOST=$DATABASE_HOST -e DATABASE_PORT=$DATABASE_PORT jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
+            echo "$SSH_PRIVATE_KEY" | ssh -o StrictHostKeyChecking=no -i /dev/stdin $EC2_USERNAME@$EC2_PUBLIC_DNS "/usr/bin/docker run -d --name gifted_margulis -p 80:3000 -e RAILS_MAX_THREADS=5 -e DATABASE_USERNAME=$DATABASE_USERNAME -e DATABASE_PASSWORD=$DATABASE_PASSWORD -e DATABASE_HOST=localhost -e DATABASE_PORT=5432 jamesgraham97/my_rails_app:$(echo ${CIRCLE_SHA1} | tr '[:upper:]' '[:lower:]')"
       - run:
           name: Run pending migrations on EC2
           command: |
